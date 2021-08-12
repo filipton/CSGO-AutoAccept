@@ -83,7 +83,7 @@ namespace CSGOAutoAccept
         {
             if (config.telegram != null && config.telegram.enabled)
             {
-                new WebClient().DownloadString($"https://api.telegram.org/bot1921712928:AAHFV9LVGjBBvKk5RfMouWYOyZPPClKG130/sendMessage?chat_id=1334304482&text={message}");
+                new WebClient().DownloadString($"https://api.telegram.org/bot{config.telegram.bottoken}/sendMessage?chat_id={config.telegram.chatid}&text={message}");
             }
             if (config.hass != null && config.hass.enabled)
             {
