@@ -45,7 +45,7 @@ namespace CSGOAutoAccept
                             {
                                 Console.WriteLine($"IMG1: {x} {y}");
                                 LeftMouseClick(x, y);
-                                if (config.enabled)
+                                if ((config.telegram != null && config.telegram.enabled) || (config.hass != null && config.hass.enabled))
                                 {
                                     SendNotification("CSGO AUTO CONNECT", "Match found!");
                                 }
@@ -54,7 +54,7 @@ namespace CSGOAutoAccept
                             {
                                 Console.WriteLine($"IMG2: {x2} {y2}");
                                 LeftMouseClick(x2, y2);
-                                if (config.enabled)
+                                if ((config.telegram != null && config.telegram.enabled) || (config.hass != null && config.hass.enabled))
                                 {
                                     SendNotification("CSGO AUTO CONNECT", "Match found!");
                                 }
@@ -66,8 +66,16 @@ namespace CSGOAutoAccept
                 }
             }).Start();
 
-            HotKeyManager.RegisterHotKey(Keys.PageUp, KeyModifiers.Control);
-            HotKeyManager.HotKeyPressed += new EventHandler<HotKeyEventArgs>(HotKeyManager_HotKeyPressed);
+            if(config.hotkey != null)
+            {
+                HotKeyManager.RegisterHotKey((Keys)Enum.Parse(typeof(Keys), config.hotkey.key), (KeyModifiers)Enum.Parse(typeof(KeyModifiers), config.hotkey.modifiers));
+                HotKeyManager.HotKeyPressed += new EventHandler<HotKeyEventArgs>(HotKeyManager_HotKeyPressed);
+            }
+            else
+            {
+                HotKeyManager.RegisterHotKey(Keys.PageUp, KeyModifiers.Control);
+                HotKeyManager.HotKeyPressed += new EventHandler<HotKeyEventArgs>(HotKeyManager_HotKeyPressed);
+            }
             Console.ReadLine();
         }
 
@@ -149,7 +157,7 @@ namespace CSGOAutoAccept
     {
         public Hass hass { get; set; }
         public Telegram telegram { get; set; }
-        public bool enabled { get; set; }
+        public Hotkey hotkey { get; set; }
     }
 
     public class Hass
@@ -165,5 +173,11 @@ namespace CSGOAutoAccept
         public bool enabled { get; set; }
         public string bottoken { get; set; }
         public string chatid { get; set; }
+    }
+
+    public class Hotkey
+    {
+        public string key { get; set; }
+        public string modifiers { get; set; }
     }
 }
