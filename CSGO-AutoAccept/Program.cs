@@ -12,15 +12,14 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Forms;
+using System.Net;
 
 namespace CSGOAutoAccept
 {
     class Program
     {
         static bool ServiceRunning = false;
-        static bool HassNotifyService = false;
-        static string ip = "http://127.0.0.1:8123";
-        static string auth = "null";
+        static ConfigJson config;
 
         static void Main(string[] args)
         {
@@ -28,9 +27,7 @@ namespace CSGOAutoAccept
             if (File.Exists("config.json"))
             {
                 ConfigJson cj = JsonConvert.DeserializeObject<ConfigJson>(File.ReadAllText("config.json"));
-                HassNotifyService = cj.hassnotify;
-                ip = cj.ip;
-                auth = cj.authkey;
+                config = cj;
                 SendNotification("CSGO AUTO CONNECT", "Test message!");
             }
 
@@ -48,7 +45,7 @@ namespace CSGOAutoAccept
                             {
                                 Console.WriteLine($"IMG1: {x} {y}");
                                 LeftMouseClick(x, y);
-                                if (HassNotifyService)
+                                if (config.enabled)
                                 {
                                     SendNotification("CSGO AUTO CONNECT", "Match found!");
                                 }
@@ -57,7 +54,7 @@ namespace CSGOAutoAccept
                             {
                                 Console.WriteLine($"IMG2: {x2} {y2}");
                                 LeftMouseClick(x2, y2);
-                                if (HassNotifyService)
+                                if (config.enabled)
                                 {
                                     SendNotification("CSGO AUTO CONNECT", "Match found!");
                                 }
@@ -76,16 +73,23 @@ namespace CSGOAutoAccept
 
         static void SendNotification(string title, string message)
         {
-            using (var httpClient = new HttpClient())
+            if (config.telegram != null && config.telegram.enabled)
             {
-                using (var request = new HttpRequestMessage(new HttpMethod("POST"), $"{ip}/api/services/notify/mobile_app_sm_j710f"))
+                new WebClient().DownloadString($"https://api.telegram.org/bot1921712928:AAHFV9LVGjBBvKk5RfMouWYOyZPPClKG130/sendMessage?chat_id=1334304482&text={message}");
+            }
+            if (config.hass != null && config.hass.enabled)
+            {
+                using (var httpClient = new HttpClient())
                 {
-                    request.Headers.TryAddWithoutValidation("Authorization", $"Bearer {auth}");
+                    using (var request = new HttpRequestMessage(new HttpMethod("POST"), $"{config.hass.ip}/api/services/notify/{config.hass.notifyservice}"))
+                    {
+                        request.Headers.TryAddWithoutValidation("Authorization", $"Bearer {config.hass.authkey}");
 
-                    request.Content = new StringContent($"{{\"message\": \"{message}\", \"title\": \"{title}\"}}");
-                    request.Content.Headers.ContentType = MediaTypeHeaderValue.Parse("application/json");
+                        request.Content = new StringContent($"{{\"message\": \"{message}\", \"title\": \"{title}\"}}");
+                        request.Content.Headers.ContentType = MediaTypeHeaderValue.Parse("application/json");
 
-                    var response = httpClient.SendAsync(request).Result;
+                        var response = httpClient.SendAsync(request).Result;
+                    }
                 }
             }
         }
@@ -143,8 +147,23 @@ namespace CSGOAutoAccept
 
     public class ConfigJson
     {
-        public bool hassnotify { get; set; }
+        public Hass hass { get; set; }
+        public Telegram telegram { get; set; }
+        public bool enabled { get; set; }
+    }
+
+    public class Hass
+    {
+        public bool enabled { get; set; }
         public string authkey { get; set; }
         public string ip { get; set; }
+        public string notifyservice { get; set; }
+    }
+
+    public class Telegram
+    {
+        public bool enabled { get; set; }
+        public string bottoken { get; set; }
+        public string chatid { get; set; }
     }
 }
