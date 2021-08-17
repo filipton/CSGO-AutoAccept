@@ -13,6 +13,7 @@ Auto match accept for CSGO with home assistant push notifications.
 ## Config Template
 ```
 {
+  "testmsg": true,
   "hass": {
     "enabled": true,
     "authkey": "auth token",
@@ -22,7 +23,7 @@ Auto match accept for CSGO with home assistant push notifications.
   "telegram": {
     "enabled": true,
     "bottoken": "telegram bot token (numbers:characters)",
-    "chatid": "chat id from: (https://api.telegram.org/bot<token>)/getUpdates)"
+    "chatid": "chat id (https://api.telegram.org/bot<token>)/getUpdates)"
   },
   "hotkey": {
     "key": "def: PageUp (https://docs.microsoft.com/pl-pl/dotnet/api/system.windows.forms.keys)",

@@ -28,43 +28,13 @@ namespace CSGOAutoAccept
             {
                 ConfigJson cj = JsonConvert.DeserializeObject<ConfigJson>(File.ReadAllText("config.json"));
                 config = cj;
-                SendNotification("CSGO AUTO CONNECT", "Test message!");
+				if (config.testmsg)
+				{
+                    SendNotification("CSGO AUTO CONNECT", "Test message!");
+				}
             }
 
-            new Thread(() =>
-            {
-                while (true)
-                {
-                    if (ServiceRunning)
-                    {
-                        try
-                        {
-                            string[] data = UseImageSearch(@"Resources\acc.png", "50");
-                            string[] data2 = UseImageSearch(@"Resources\acc2.png", "50");
-                            if (data != null && int.TryParse(data[1], out int x) && int.TryParse(data[2], out int y))
-                            {
-                                Console.WriteLine($"IMG1: {x} {y}");
-                                LeftMouseClick(x, y);
-                                if ((config.telegram != null && config.telegram.enabled) || (config.hass != null && config.hass.enabled))
-                                {
-                                    SendNotification("CSGO AUTO CONNECT", "Match found!");
-                                }
-                            }
-                            else if (data2 != null && int.TryParse(data2[1], out int x2) && int.TryParse(data2[2], out int y2))
-                            {
-                                Console.WriteLine($"IMG2: {x2} {y2}");
-                                LeftMouseClick(x2, y2);
-                                if ((config.telegram != null && config.telegram.enabled) || (config.hass != null && config.hass.enabled))
-                                {
-                                    SendNotification("CSGO AUTO CONNECT", "Match found!");
-                                }
-                            }
-                        }
-                        catch { }
-                    }
-                    Thread.Sleep(2500);
-                }
-            }).Start();
+            AutoConnectChecker();
 
             if(config.hotkey != null)
             {
@@ -77,6 +47,41 @@ namespace CSGOAutoAccept
                 HotKeyManager.HotKeyPressed += new EventHandler<HotKeyEventArgs>(HotKeyManager_HotKeyPressed);
             }
             Console.ReadLine();
+        }
+
+        public static async void AutoConnectChecker()
+        {
+            while (true)
+            {
+                if (ServiceRunning)
+                {
+                    try
+                    {
+                        string[] data = UseImageSearch(@"Resources\acc.png", "50");
+                        string[] data2 = UseImageSearch(@"Resources\acc2.png", "50");
+                        if (data != null && int.TryParse(data[1], out int x) && int.TryParse(data[2], out int y))
+                        {
+                            Console.WriteLine($"IMG1: {x} {y}");
+                            LeftMouseClick(x, y);
+                            if ((config.telegram != null && config.telegram.enabled) || (config.hass != null && config.hass.enabled))
+                            {
+                                SendNotification("CSGO AUTO CONNECT", "Match found!");
+                            }
+                        }
+                        else if (data2 != null && int.TryParse(data2[1], out int x2) && int.TryParse(data2[2], out int y2))
+                        {
+                            Console.WriteLine($"IMG2: {x2} {y2}");
+                            LeftMouseClick(x2, y2);
+                            if ((config.telegram != null && config.telegram.enabled) || (config.hass != null && config.hass.enabled))
+                            {
+                                SendNotification("CSGO AUTO CONNECT", "Match found!");
+                            }
+                        }
+                    }
+                    catch { }
+                }
+                await Task.Delay(2500);
+            }
         }
 
         static void SendNotification(string title, string message)
@@ -155,6 +160,7 @@ namespace CSGOAutoAccept
 
     public class ConfigJson
     {
+        public bool testmsg { get; set; }
         public Hass hass { get; set; }
         public Telegram telegram { get; set; }
         public Hotkey hotkey { get; set; }
